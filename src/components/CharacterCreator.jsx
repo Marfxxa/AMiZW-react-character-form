@@ -28,23 +28,34 @@ function CharacterCreator() {
     const [savedCharacter, setSavedCharacter] = useState(null);
 
     const handleChange = (e) => {
-        // TODO:
-        // 1. pobierz name, value, type, checked z e.target
-        // 2. jeśli pole zaczyna się od "stats." to zaktualizuj formData.stats
-        // 3. w innym przypadku zaktualizuj zwykłe pole formularza
+     const {name , value , type , checked}=e.target;
+     const newValue = type === 'checkbox'? checked:value;
+     setFormData ((prev)=>
+        {const newdata = cloneData(prev);
+            if(name.startsWith('stats.')){
+                const statname = name.split('.')[1];
+                newdata.stats[statname]=parseInt(newValue)||0;
+            }
+            else{
+                newdata[name]=type==='number'?
+                parseInt(newValue):newValue;
+            }
+            return newdata;
+        })
     };
 
     const validate = () => {
         const newErrors = {};
+        const {name,race,classType,level,weapon,description,stats}=formData;
+        if(name.length<3)newErrors.name = "Nick musi miec minimum 3 znaki";
+        if(!race)newErrors.race='wybierz rase';
+        if(!classType)newErrors.classType="wybierz clase";
+        if(level<1 || level>60)newErrors.level="poziom musi byc w zakresie 1-60";
+        if(!weapon)newErrors.weapon="wybierz bron";
+        if(description.lenght<10)newErrors.description="opis musi miec minimum 10 znakow";
+        const totalStat = stats.strength+stats.agility+stats.intelligence;
+        if(totalStat>15)newErrors.stats=`suma statystyk(aktualnie:${totalStat})nie moze przekraczac 15`;
 
-        // TODO:
-        // - nick min. 3 znaki
-        // - rasa wymagana
-        // - klasa wymagana
-        // - poziom 1-60
-        // - broń wymagana
-        // - opis min. 10 znaków
-        // - suma statystyk max 15
 
         return newErrors;
     };
@@ -52,27 +63,28 @@ function CharacterCreator() {
     const handleSave = (e) => {
         e.preventDefault();
 
-        // TODO:
-        // 1. uruchom validate()
-        // 2. zapisz błędy do setErrors(...)
-        // 3. jeśli brak błędów, zapisz postać do savedCharacter
+        const validateErrors = validate();
+        setErrors (validateErrors);
+        if(Object.keys(validateErrors).length===0){
+            setSavedCharacter(cloneData(formData));
+            alert("postac zostala zapisana");
+        }
     };
 
     const handleLoadSaved = () => {
-        // TODO:
-        // jeśli istnieje savedCharacter,
-        // wczytaj go z powrotem do formData
+      if(savedCharacter){
+        setFormData(cloneData(savedCharacter));
+        setErrors({});
+      }
     };
 
     const handleDeleteSaved = () => {
-        // TODO:
-        // usuń zapis postaci
+       setSavedCharacter(null);
     };
 
     const handleResetForm = () => {
-        // TODO:
-        // zresetuj formularz do initialForm
-        // wyczyść błędy
+       setFormData(initialForm);
+       setErrors({});
     };
 
     return (
